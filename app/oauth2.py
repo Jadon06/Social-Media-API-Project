@@ -1,5 +1,11 @@
 from jose import JWTError, jwt
+from pydantic import EmailStr
+from fastapi import Depends, status, HTTPException
+from fastapi.security import OAuth2PasswordBearer
 from datetime import datetime, timedelta
+from . import schemas
+
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl='login')
 
 # Secret Key
 # Algorithm for encrypting token
@@ -17,3 +23,17 @@ def create_acess_token(data: dict):
     token = jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
 
     return token
+
+def verify_access_token(token: str, credentials_exception):
+    payload = jwt.decode(token, SECRET_KEY, algorithms=ALGORITHM)
+    id: str = payload.get("User_id")
+    email: EmailStr = payload.get("email")
+    
+    if not id or not email:
+        raise credentials_exception
+    token_data = schemas.TokenData(id=id, email=email)
+
+def get_current_user(token: str = Depends(oauth2_scheme)):
+    credentials_exception = HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Could not validate credentials",
+                                          headers={"WWW-Authenticate" : "Bearere"})
+    return verify_access_token(token, credentials_exception)
