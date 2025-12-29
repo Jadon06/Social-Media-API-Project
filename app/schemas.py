@@ -16,6 +16,7 @@ class PostCreate(PostBase):
 class PostResponse(PostBase):
     pass
     created_at: datetime
+    User_id: int
     # tells pydantic that argument being passed is an ORM model allowing conversion
     class Config:
         orm_mode = True
