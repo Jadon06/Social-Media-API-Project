@@ -13,10 +13,15 @@ class PostBase(BaseModel):
 class PostCreate(PostBase):
     pass
 
+class UserLogin(BaseModel):
+    email: EmailStr
+    password: str
+
 class PostResponse(PostBase):
     pass
     created_at: datetime
     User_id: int
+    user: UserLogin
     # tells pydantic that argument being passed is an ORM model allowing conversion
     class Config:
         orm_mode = True
@@ -33,10 +38,6 @@ class UserResponse(BaseModel):
     created_at: datetime
     class Config:
         orm_mode = True
-
-class UserLogin(BaseModel):
-    email: EmailStr
-    password: str
 
 class Token(BaseModel):
     access_token: str

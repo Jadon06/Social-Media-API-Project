@@ -2,7 +2,7 @@ from .. import models, schemas
 from ..database import get_db
 from sqlalchemy.orm import Session
 from fastapi import Response, status, HTTPException, Depends, APIRouter
-from typing import List
+from typing import List, Optional
 from .. import oauth2
 
 router = APIRouter(
@@ -12,15 +12,14 @@ router = APIRouter(
 
 # retrieve all social media posts
 @router.get("/", response_model=List[schemas.PostResponse])
-def get_posts(db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
+def get_posts(db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user), Limit: int = 10, 
+              Skip: int = 0, search: Optional[str] = ""):
     # cursor.execute("""SELECT * FROM "Posts";""")
     # posts = cursor.fetchall() 
-    posts = db.query(models.Post).filter(models.Post.User_id == current_user.id)
+    print(Limit)
+    posts = db.query(models.Post).filter(models.Post.User_id == current_user.id).filter(models.Post.title.contains(search)).offset(Skip).limit(Limit).all()
     if not posts:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="ID of {id}, does not exist", id = current_user.id)
-    if models.Post.User_id != current_user.id:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Unauthorized access")
-    print(posts)
     return posts
 
 # create social media posts
