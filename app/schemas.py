@@ -1,14 +1,14 @@
 # imports
-from pydantic import BaseModel, EmailStr
-from typing import Optional
+from pydantic import BaseModel, EmailStr, Field
+from typing import Optional, Union
 from datetime import datetime
+from enum import Enum
 
 # Post model for validation
 class PostBase(BaseModel):
     title : str
     content : str
     published : Optional[bool] = False
-    liked : Optional[bool] = None
 
 class PostCreate(PostBase):
     pass
@@ -46,3 +46,12 @@ class Token(BaseModel):
 class TokenData(BaseModel):
     id: Optional[str] = None
     email: Optional[EmailStr] = None
+
+# voting schema to only allow an upvote or a downvote not both
+class Options(str, Enum):
+    upvote = "upvote"
+    downvote = "downvote"
+
+class Vote(BaseModel):
+    choice: Optional[Options] = None
+    post_id: int
