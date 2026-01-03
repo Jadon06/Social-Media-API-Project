@@ -26,6 +26,15 @@ class PostResponse(PostBase):
     class Config:
         orm_mode = True
 
+class PostVote(BaseModel):
+    pass
+    Post: PostResponse
+    upvotes: int
+    downvotes: int
+    class Config:
+        orm_mode = True
+
+
 # User validation model
 class User(BaseModel):
     email: EmailStr

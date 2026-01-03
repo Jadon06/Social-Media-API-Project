@@ -1,6 +1,7 @@
 from .. import models, schemas
 from ..database import get_db
 from sqlalchemy.orm import Session
+from sqlalchemy import func
 from fastapi import Response, status, HTTPException, Depends, APIRouter
 from typing import List, Optional
 from .. import oauth2
@@ -11,16 +12,22 @@ router = APIRouter(
 )
 
 # retrieve all social media posts
-@router.get("/", response_model=List[schemas.PostResponse])
+@router.get("/", response_model=List[schemas.PostVote])
 def get_posts(db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user), Limit: int = 10, 
               Skip: int = 0, search: Optional[str] = ""):
     # cursor.execute("""SELECT * FROM "Posts";""")
     # posts = cursor.fetchall() 
-    print(Limit)
     posts = db.query(models.Post).filter(models.Post.User_id == current_user.id).filter(models.Post.title.contains(search)).offset(Skip).limit(Limit).all()
+    
+    # By default SQLAlchemy joins are inner, so isouter=True must be added to specify join type
+    results = db.query(models.Post, func.count(
+        models.Vote.upvote).label("upvotes"), func.count(models.Vote.downvote).label("downvotes")).join(
+        models.Vote, models.Vote.post_id == models.Post.id, isouter=True).group_by(models.Post.id).filter(
+            models.Post.User_id == current_user.id).filter(models.Post.title.contains(search)).offset(Skip).limit(Limit).all()
+    
     if not posts:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="ID of {id}, does not exist", id = current_user.id)
-    return posts
+    return results
 
 # create social media posts
 @router.post("/", status_code=status.HTTP_201_CREATED, response_model=schemas.PostResponse)
@@ -35,18 +42,23 @@ def create_post(post: schemas.PostCreate, db: Session = Depends(get_db), current
     db.refresh(new_post)
     return new_post
 # retrieve a single post
-@router.get("/{id}", response_model=schemas.PostResponse)
+@router.get("/{id}", response_model=schemas.PostVote)
 def get_post(id : int, db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
     # cursor.execute("""SELECT * FROM "Posts" WHERE "id" = %s;""",(str(id),))
     # post = cursor.fetchall()
     
-    post = db.query(models.Post).filter(models.Post.User_id == current_user.id).filter(models.Post.id == id).first()
-    if not post:
+    post = db.query(models.Post).filter(models.Post.id == id).first()
+    results = db.query(models.Post, func.count(
+        models.Vote.upvote).label("upvotes"), func.count(models.Vote.downvote).label("downvotes")).join(
+        models.Vote, models.Vote.post_id == models.Post.id, isouter=True).group_by(models.Post.id).filter(
+            models.Post.User_id == current_user.id).filter(models.Post.id == id).first()
+    if not results:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, 
                             detail="Post Not Found!!")
-    if models.Post.User_id != current_user.id:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Unauthorized access")
-    return post
+    # REMINDER - Create a functional security check to ensure current user is accessing their own posts
+    # if models.Post.User_id != current_user.id:
+    #     raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Unauthorized access")
+    return results
 
 # update a post
 @router.put("/{id}")
