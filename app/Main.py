@@ -9,7 +9,7 @@ from .routers import post, user, auth, vote
 
 from .config import settings
 # creates all database tables defined within the models file
-models.Base.metadata.create_all(bind=engine)
+# models.Base.metadata.create_all(bind=engine)
 
 # app module for calling fastapi
 app = FastAPI()

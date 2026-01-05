@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Boolean, ForeignKey
+from sqlalchemy import Column, Integer, String, Boolean, ForeignKey, CheckConstraint
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql.sqltypes import TIMESTAMP
 from sqlalchemy.sql.expression import text
@@ -22,6 +22,7 @@ class User(Base):
     __tablename__ = "Users"
 
     email = Column(String, nullable=False, unique=True)
+    phone_number = Column(String, nullable=True, unique=True)
     password = Column(String, nullable=False)
     id = Column(Integer, primary_key=True, nullable=False)
     created_at = Column(TIMESTAMP(timezone=True), nullable=False, server_default=text('now()'))
@@ -33,5 +34,12 @@ class Vote(Base):
     voter_id = Column(Integer, ForeignKey("Users.id", ondelete="CASCADE"), nullable=False, primary_key=True)
     upvote = Column(Boolean, nullable=True)
     downvote = Column(Boolean, nullable=True)
+
+    __table_args__ = (
+        CheckConstraint(
+            ~(upvote & downvote),
+            name='check_not_both_true'
+        ),
+    )
 
     
