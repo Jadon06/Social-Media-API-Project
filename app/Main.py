@@ -1,6 +1,6 @@
 # imports
 from fastapi import FastAPI
-from fastapi.params import Body
+from fastapi.middleware.cors import CORSMiddleware 
 
 from . import models
 from .database import engine
@@ -13,6 +13,15 @@ from .config import settings
 
 # app module for calling fastapi
 app = FastAPI()
+
+origins = ["https://www.google.com/"]
+app.add_middleware(
+    CORSMiddleware, 
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"]
+)
 
 # NOTE - must pass in 'db: Session = Depends(get_db)' into the function argument to access table
 
