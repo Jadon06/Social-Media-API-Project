@@ -13,9 +13,9 @@ import os
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
 config = context.config
-database_url = 'postgresql://render_postgres_ze85_user:HbMGug94CgcLIre0AFylpGiZ08WyPD3e@dpg-d5ftuqhr0fns73c3l5t0-a/render_postgres_ze85'
+database_url = os.environ.get("DATABASE_URL")
 config.set_main_option("sqlalchemy.url", 
-                       os.environ["database_url"])
+                       database_url)
 
 # Interpret the config file for Python logging.
 # This line sets up loggers basically.
