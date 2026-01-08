@@ -30,6 +30,7 @@ app.include_router(user.router)
 app.include_router(auth.router)
 app.include_router(vote.router)
 
+# check that API is running
 @app.get("/")
 def root():
     return {"status": "ok", "message": "API is running"}
