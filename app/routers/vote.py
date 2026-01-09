@@ -1,6 +1,7 @@
 from fastapi import Response, status, HTTPException, Depends, APIRouter
 from ..database import engine, get_db
 from sqlalchemy.orm import Session
+from sqlalchemy import update
 from .. import schemas, models, oauth2
 
 router = APIRouter(prefix="/vote", tags=['Vote'])
@@ -24,17 +25,29 @@ def vote(vote: schemas.Vote, db: Session = Depends(get_db), current_user: int = 
     if (voted.upvote and vote.choice == 'upvote') or (voted.downvote and vote.choice == 'downvote'):
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, 
                             detail=f"User {current_user.id} has already voted on post {vote.post_id}! Must change vote choice")
-    # elif (voted.upvote and vote.choice != 'upvote') or (voted.downvote and vote.choice != 'downvote'):
-    #     if vote.choice == 'upvote':
-    #         like = models.Vote(post_id=vote.post_id, voter_id=current_user.id, upvote=True, downvote=None)
-    #         db.add(like)
-    #         db.commit()
-    #     if vote.choice == 'downvote':
-    #         dislike = models.Vote(post_id=vote.post_id, voter_id=current_user.id, upvote=None, downvote=True)
-    #         db.add(dislike)
-    #         db.commit()
-
-    # if voted:
-    #     raise HTTPException(status_code=status.HTTP_409_CONFLICT, 
-    #                         detail=f"User {current_user.id} has already voted on post {vote.post_id}!")
+    if voted:
+        if vote.choice == 'upvote' and not voted.upvote:
+            updated_like = (update(models.Vote).where(models.Vote.post_id 
+                                                    == vote.post_id).where(
+                                                        models.Vote.voter_id == current_user.id).values(
+                        {
+                            models.Vote.upvote: True,
+                            models.Vote.downvote: None
+                        }
+                    )
+                )
+            db.execute(updated_like)
+            db.commit()
+        if vote.choice == 'downvote' and not voted.downvote:
+            updated_dislike = (update(models.Vote).where(models.Vote.post_id 
+                                                    == vote.post_id).where(
+                                                        models.Vote.voter_id == current_user.id).values(
+                        {
+                            models.Vote.downvote: True,
+                            models.Vote.upvote: None
+                        }
+                    )
+                )
+            db.execute(updated_dislike)
+            db.commit()
     return "Vote has been placed Successfully!"
