@@ -1,0 +1,33 @@
+services:
+    api:
+      # rebuilds our specified docker image in the current directory
+      image: jadonay123/fastapi
+      depends_on: 
+          - postgres
+      ports:
+        # format:<port on localhost>:<port on container> 
+          - 80:8000
+        # To see changes in production, must sync the production 'app' file with 'app' file on local machine
+      environment: 
+          - DATABASE_HOSTNAME=${DATABASE_HOSTNAME}
+          - DATABASE_PORT=${DATABASE_PORT}
+          - DATABASE_PASSWORD=${DATABASE_PASSWORD}
+          - DATABASE_NAME=${DATABASE_NAME}
+          - DATABASE_USERNAME=${DATABASE_USERNAME}
+          - DATABASE_URL=${DATABASE_URL}
+          - SECRET_KEY=${SECRET_KEY}
+          - ALGORITHM=${ALGORITHM}
+          - ACCESS_TOKEN_EXPIRE_MINUTES=${ACCESS_TOKEN_EXPIRE_MINUTES}
+
+    postgres: 
+      image: postgres
+      environment: 
+        - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+        - POSTGRES_DB=${POSTGRES_DB}
+
+      volumes: 
+        #               Path to container
+        - postgres-db:/var/lib/postgresql
+
+volumes: 
+  postgres-db: 
