@@ -1,4 +1,9 @@
 # Social-Media-API-Project
+Useful links:
+- DockerHub: https://hub.docker.com/repositories/jadonay123
+- Render Deployment: https://social-media-api-project-dglt.onrender.com
+- Ubuntu web deployment: https://jadonsapi.me/docs
+
 
 Section 1: Introduction
 - Introduces the course project and overall goals.
