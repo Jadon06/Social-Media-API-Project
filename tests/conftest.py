@@ -1,3 +1,5 @@
+# All files in the 'tests' package can access the conftest content
+
 from fastapi.testclient import TestClient
 from fastapi import HTTPException, status
 from app.Main import app
@@ -63,3 +65,16 @@ def client(session):
     app.dependency_overrides[database.get_db] = override_get_db
     # returns the module TestClient(app)
     yield TestClient(app)
+
+@pytest.fixture(scope='function') # limit scope to the function so that once function has executed the data will be dropped. Prevents dependancy
+def test_user(client):
+    res = client.post("/users/", json={"email": "aycjadon@gmail.com", "password": "password123"}) # creates a request to create a user and stores the response
+    new_user = res.json() # grab that response and convert it into readable JSON which is also a dict
+    new_user['password'] = "password123" # append the password so that it's accessable since in our schemas we prevented the password from being returned to user
+    return new_user
+
+@pytest.fixture
+def test_post(client):
+    res = client.post("/posts/", json={'title': 'Awesome Cities in Canada', 'content': 'Toronto, Whistler, Vancouver', 'published': True})
+    new_post = res.json()
+    return new_post

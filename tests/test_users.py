@@ -1,16 +1,9 @@
-from .database import client, session
 from app import schemas, oauth2
+from app.routers import auth
 from fastapi import status, HTTPException
 import pytest
 
 # must pass in client to make HTTP requests
-
-@pytest.fixture(scope='function') # limit scope to the function so that once function has executed the data will be dropped. Prevents dependancy
-def test_user(client):
-    res = client.post("/users/", json={"email": "aycjadon@gmail.com", "password": "password123"}) # creates a request to create a user and stores the response
-    new_user = res.json() # grab that response and convert it into readable JSON which is also a dict
-    new_user['password'] = "password123" # append the password so that it's accessable since in our schemas we prevented the password from being returned to user
-    return new_user
 
 def test_create_user(client):
     res = client.post("/users/", json={"email": "aycjadon@gmail.com", "password": "password123"})
@@ -26,6 +19,18 @@ def test_user_login(client, test_user):
     
     assert token_data.email == test_user['email'] and int(token_data.id) == test_user['id'] 
     assert res.status_code == 200
+
+@pytest.mark.parametrize("email, password, status_code", [('wrongemail@gmail.com', 'password123', 403),
+                                                          ('aycjadon@gmail.com', 'wrongpassword', 403),
+                                                          ('wrongemail@gmail.com', 'wrongpassword', 403),
+                                                          (None, 'password123', 403),
+                                                          ('aycjadon@gmail.com', None, 403)
+                                                          ])
+def test_failed_login(test_user, client, email, password, status_code):
+    res = client.post("/login", data={'username': email, 'password':password})
+    assert res.status_code == status_code
+    assert res.json().get('detail') == "Invalid email or password!"
+
 
 def test_get_user(client, test_user):
     res = client.get(f"/users/{test_user['id']}")

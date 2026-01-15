@@ -80,3 +80,4 @@ Topics that this project covered & taught me:
         - Created a TestClient object for testing
         - Made client function dependent on session function, guaranteeing testing database isolation, forcing the TestClient to use the same database as Test as well as for automatic clean up and creation of tables
         - used the -s and -v flags during testing to see detailed error responses
+        - Created a Conftest file to store all fxtures
