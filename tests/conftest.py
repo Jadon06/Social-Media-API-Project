@@ -4,7 +4,7 @@ from fastapi.testclient import TestClient
 from fastapi import HTTPException, status
 from app.Main import app
 import pytest
-from app import schemas, database
+from app import schemas, database, oauth2, models
 
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
@@ -41,11 +41,9 @@ def override_get_db():
 # Changes scope so that the fixture will last the entirety of the module, currently inly 'test_users'
 
 @pytest.fixture(scope="function")
-def session():
-    # run to remove all data to start on a clean slate
-    database.Base.metadata.drop_all(bind=engine)
-    # run our code before we return our test to make all tables
-    database.Base.metadata.create_all(bind=engine)
+def session(): # This is my test database instance. Note: if I ever want to access the test database must pass in 'session' into args and access the test database contents like a regular database
+    database.Base.metadata.drop_all(bind=engine) # run to remove all data to start on a clean slate
+    database.Base.metadata.create_all(bind=engine) # run our code before we return our test to make all tables
     db = TestingSessionLocal()
     try:
         yield db
@@ -55,16 +53,13 @@ def session():
 
 @pytest.fixture(scope="function")
 def client(session):
-    # Pass in session so that function depends on session fixture
-    def override_get_db():
+    def override_get_db(): # Pass in session so that function depends on session fixture
         try:
             yield session
         finally:
             session.close()
-    # override the chosen dependecy so that we don't make changes to the live databases
-    app.dependency_overrides[database.get_db] = override_get_db
-    # returns the module TestClient(app)
-    yield TestClient(app)
+    app.dependency_overrides[database.get_db] = override_get_db # override the chosen dependecy so that we don't make changes to the live Test databases
+    yield TestClient(app) # returns the module TestClient(app)
 
 @pytest.fixture(scope='function') # limit scope to the function so that once function has executed the data will be dropped. Prevents dependancy
 def test_user(client):
@@ -74,7 +69,37 @@ def test_user(client):
     return new_user
 
 @pytest.fixture
-def test_post(client):
-    res = client.post("/posts/", json={'title': 'Awesome Cities in Canada', 'content': 'Toronto, Whistler, Vancouver', 'published': True})
-    new_post = res.json()
-    return new_post
+def test_token(test_user):
+    token = oauth2.create_acess_token(data={"User_id":test_user['id'], 'email':test_user['email']})
+    return token
+
+@pytest.fixture
+def authorized_client(client, test_token):
+    client.headers = {
+        **client.headers,
+        "Authorization" : f"Bearer {test_token}"
+    }
+    return client
+
+@pytest.fixture
+def test_posts(session, test_user):
+    posts_data = [{
+        "title" : "first title",
+        "content" : "first content",
+        "User_id" : test_user['id']
+    }, {
+        "title" : "second title",
+        "content" : "second content",
+        "User_id" : test_user['id']
+    }, {
+        "title" : "third title",
+        "content" : "third content",
+        "User_id" : test_user['id']
+    }]
+
+    session.add_all([models.Post(**posts_data[0]),
+                     models.Post(**posts_data[1]),
+                     models.Post(**posts_data[2])])
+    session.commit()
+    posts = session.query(models.Post).all()
+    return posts

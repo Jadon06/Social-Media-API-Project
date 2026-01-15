@@ -26,7 +26,7 @@ def get_posts(db: Session = Depends(get_db), current_user: int = Depends(oauth2.
             models.Post.User_id == current_user.id).filter(models.Post.title.contains(search)).offset(Skip).limit(Limit).all()
     
     if not posts:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="ID of {id}, does not exist", id = current_user.id)
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No posts found")
     return results
 
 # create social media posts
