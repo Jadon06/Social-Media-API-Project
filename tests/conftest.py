@@ -68,6 +68,14 @@ def test_user(client):
     new_user['password'] = "password123" # append the password so that it's accessable since in our schemas we prevented the password from being returned to user
     return new_user
 
+@pytest.fixture(scope='function') # limit scope to the function so that once function has executed the data will be dropped. Prevents dependancy
+def other_test_user(client): # second test user for testing unauthorized access
+    res = client.post("/users/", json={"email": "bob@gmail.com", "password": "password123"}) # creates a request to create a user and stores the response
+    new_user = res.json() # grab that response and convert it into readable JSON which is also a dict
+    new_user['password'] = "password123" # append the password so that it's accessable since in our schemas we prevented the password from being returned to user
+    return new_user
+
+
 @pytest.fixture
 def test_token(test_user):
     token = oauth2.create_acess_token(data={"User_id":test_user['id'], 'email':test_user['email']})
@@ -82,7 +90,7 @@ def authorized_client(client, test_token):
     return client
 
 @pytest.fixture
-def test_posts(session, test_user):
+def test_posts(session, test_user, other_test_user):
     posts_data = [{
         "title" : "first title",
         "content" : "first content",
@@ -95,11 +103,21 @@ def test_posts(session, test_user):
         "title" : "third title",
         "content" : "third content",
         "User_id" : test_user['id']
+    }, {
+        "title" : "fourth title",
+        "content" : "fourth content",
+        "User_id" : other_test_user['id']
     }]
-
     session.add_all([models.Post(**posts_data[0]),
                      models.Post(**posts_data[1]),
-                     models.Post(**posts_data[2])])
+                     models.Post(**posts_data[2]),
+                     models.Post(**posts_data[3])])
     session.commit()
     posts = session.query(models.Post).all()
     return posts
+
+@pytest.fixture
+def test_vote(test_posts, session, test_user):
+    new_vote = models.Vote(post_id=test_posts[0].id, upvote=True, voter_id=test_user['id'])
+    session.add(new_vote)
+    session.commit()

@@ -16,6 +16,9 @@ Followed a tutorial which can be found in the links below, providing me deep ins
     - DigitalOcean/Ubuntu
     - DockerHub
     - Git
+        - Pull/Push
+        - GitHub Actions
+        - GitHub Marketplace
     - Linux Command terminal
     - Command Prompt(CMD)
     - NGINX
@@ -81,3 +84,6 @@ Topics that this project covered & taught me:
         - Made client function dependent on session function, guaranteeing testing database isolation, forcing the TestClient to use the same database as Test as well as for automatic clean up and creation of tables
         - used the -s and -v flags during testing to see detailed error responses
         - Created a Conftest file to store all fxtures
+- CI/CD Pipelines (GitHub Actions)
+    - created a .yaml file storing all commands and tools required to automate the delivery process from development to deployment
+    

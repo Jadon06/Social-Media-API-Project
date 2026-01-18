@@ -48,6 +48,9 @@ def get_post(id : int, db: Session = Depends(get_db), current_user: int = Depend
     # post = cursor.fetchall()
     
     post = db.query(models.Post).filter(models.Post.id == id).first()
+    if post and post.User_id != id:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Unauthorized Access!!")
+    
     results = db.query(models.Post, func.count(
         models.Vote.upvote).label("upvotes"), func.count(models.Vote.downvote).label("downvotes")).join(
         models.Vote, models.Vote.post_id == models.Post.id, isouter=True).group_by(models.Post.id).filter(
@@ -70,12 +73,12 @@ def update_post(id : int, post : schemas.PostCreate, db: Session = Depends(get_d
     updated_post = db.query(models.Post).filter(models.Post.User_id == current_user.id).filter(models.Post.id == id).first()
     if not updated_post:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Post does not exist")
-    if models.Post.User_id != current_user.id:
+    if updated_post.User_id != current_user.id:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Unauthorized access")
     
     updated_post = db.query(models.Post).filter(models.Post.id == id).update(post.dict(), synchronize_session=False)
     db.commit()
-    return "Post Updated!!"
+    return updated_post
 
 # delete a post
 @router.delete("/{id}")

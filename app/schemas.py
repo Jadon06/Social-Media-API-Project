@@ -60,6 +60,7 @@ class TokenData(BaseModel):
 class Options(str, Enum):
     upvote = "upvote"
     downvote = "downvote"
+    unvote = "unvote"
 
 class Vote(BaseModel):
     choice: Optional[Options] = None
