@@ -8,5 +8,11 @@ jobs:
     steps: 
       - name: pulling git repo
         uses: actions/checkout@v6
-      - name: say hi to jadon
-        run: echo "hello jadon!"
+      - name: Install python v6
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.13' 
+      - name: update pip
+        run: python -m install --upgrage pip
+      - name: install all dependencies
+        run: pip install -r requirements.txt
