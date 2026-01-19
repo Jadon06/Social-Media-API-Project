@@ -86,4 +86,13 @@ Topics that this project covered & taught me:
         - Created a Conftest file to store all fxtures
 - CI/CD Pipelines (GitHub Actions)
     - created a .yaml file storing all commands and tools required to automate the delivery process from development to deployment
-    
+    - Created a 'Build' and 'Deploy' job for development and production
+    - CI
+        - Setup environment variables in the GitHub secrets tab
+        - Connected the Postgres testing database with the tetsing portion of the integration
+            - prevents code pushing onto GitHub if tests aren't passes
+        - Integrated docker
+    - CD
+        - deployed changes onto ubuntu server via 'Deploy' job
+            - Used SSH Remote Commands by 'appleboy' found on GitHub Marketplace
+        - Verifies that 'Build' runs successfully before running 'Deploy' as GitHub Actions runs jobs 'parrallel'
