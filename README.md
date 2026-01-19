@@ -8,7 +8,7 @@ Reference Link for tutorial video:
 - https://www.youtube.com/watch?v=0sOvCWFmrtA
 
 Description:
-Followed a tutorial which can be found in the links below, providing me deep insight on the following topics: 
+Followed a tutorial which can be found in the links above, providing me deep insight on the following topics: 
 - Software/tools
     - PostMan
     - Postgres/PGAdmin4
