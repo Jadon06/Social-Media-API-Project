@@ -59,7 +59,7 @@ jobs:
       
       - name: Set up Docker Buildx
         id: Buildx
-        uses: docker/setup-build-action@v3
+        uses: docker/setup-buildx-action@v3
       
       - name: build and push
         id: docker_build
@@ -69,8 +69,8 @@ jobs:
           file: ./Dockerfile
           push: true
           tags: ${{secrets.DOCKER_HUB_USERNAME}}/fastapi:latest
-          caches-from: type=local,src=/tmp/.buildx-cache
-          caches-to: type=local,dest=/tmp/.build-cache
+          cache-from: type=local,src=/tmp/.buildx-cache
+          cache-to: type=local,dest=/tmp/.build-cache
       
       - name: image digest
         run: echo ${{steps.docker_build.outputs.digest}}
