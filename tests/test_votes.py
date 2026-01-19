@@ -24,8 +24,8 @@ def test_delete_vote_DNE(authorized_client, test_posts):
 
 def test_vote_post_DNE(authorized_client, test_posts):
     res = authorized_client.post("/vote/", json={"choice":"upvote", "post_id":100})
-    assert res.status_code == 100 # change back to 404
-
+    assert res.status_code == 404
+    
 def test_vote_post_unauthorized(client, test_posts):
     res = client.post("/vote/", json={"choice":"upvote", "post_id":100})
     assert res.status_code == 401
